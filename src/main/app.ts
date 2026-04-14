@@ -16,6 +16,14 @@ export class App {
     private onText: (text: string) => void
   ) {}
 
+  const model = (document.getElementById("modelSelect") as HTMLSelectElement).value as "tiny" | "base";
+  
+  this.micWorker = new WorkerClient(
+    new URL("../workers/micWorker.ts", import.meta.url),
+    (seg) => this.onText(`[${seg.speaker}] ${seg.text}`),
+    model
+  );
+  
   async startMic() {
     this.micWorker = new WorkerClient(
       new URL("../workers/micWorker.ts", import.meta.url),
