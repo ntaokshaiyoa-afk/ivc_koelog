@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>コエログ</title>
+</head>
+<body>
+
+<h2>コエログ（テスト）</h2>
+
+<button id="startMic">🎤 マイク開始</button>
+<button id="stop">⏹ 停止</button>
+
+<pre id="log"></pre>
+
+<script>
+let stream;
+let recorder;
+
+const log = (msg) => {
+  document.getElementById("log").textContent += msg + "\n";
+};
+
+async function checkModel() {
+  const res = await fetch('./assets/models/ggml-tiny.bin', { method: 'HEAD' });
+  if (!res.ok) {
+    alert('モデルが見つかりません');
+    return false;
+  }
+  return true;
+}
+
+async function startMic() {
+  const ok = await checkModel();
+  if (!ok) return;
+
+  stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+
+  recorder = new MediaRecorder(stream);
+
+  recorder.ondataavailable = (e) => {
+    log("音声chunk取得: " + e.data.size);
+  };
+
+  recorder.start(1000);
+  log("録音開始");
+}
+
+function stop() {
+  recorder?.stop();
+  stream?.getTracks().forEach(t => t.stop());
+  log("停止");
+}
+
+document.getElementById("startMic").onclick = startMic;
+document.getElementById("stop").onclick = stop;
+</script>
+
+</body>
+</html>
