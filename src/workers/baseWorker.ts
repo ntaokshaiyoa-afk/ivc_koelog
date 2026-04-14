@@ -10,17 +10,21 @@ self.onmessage = async (e: MessageEvent) => {
     switch (msg.type) {
 
       case "INIT":
-        await initWhisper(msg.model); // ★追加
-        (self as any).postMessage({ type: "READY" });
+        await initWhisper();
+        postMessage({ type: "READY" });
         break;
-
+      
       case "PROCESS_CHUNK":
-        const result = await processPipeline(msg.payload);
-
-        if (result) {
-          (self as any).postMessage({
+        const result = await whisperProcess(msg.payload);
+      
+        if (result.text) {
+          postMessage({
             type: "TRANSCRIPT",
-            payload: result
+            payload: {
+              text: result.text,
+              speaker: msg.payload.source,
+              timestamp: Date.now()
+            }
           });
         }
         break;
