@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>コエログ</title>
+
+  <style>
+    body {
+      font-family: sans-serif;
+      margin: 0;
+      background: #f5f5f5;
+    }
+    header {
+      background: #222;
+      color: #fff;
+      padding: 10px 16px;
+    }
+    main {
+      padding: 16px;
+    }
+    .controls {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    button {
+      padding: 8px 12px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    select {
+      padding: 6px;
+    }
+    .status {
+      margin-bottom: 12px;
+      font-size: 13px;
+      color: #555;
+    }
+    .warning {
+      color: red;
+      font-size: 13px;
+      margin-bottom: 10px;
+    }
+    .transcript {
+      background: #fff;
+      padding: 12px;
+      height: 300px;
+      overflow-y: auto;
+      border: 1px solid #ccc;
+      font-family: monospace;
+    }
+    .row {
+      margin-bottom: 6px;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>
+  <h2>コエログ</h2>
+</header>
+
+<main>
+
+  <!-- ⚠️ 法的注意 -->
+  <div class="warning">
+    ※このツールは録音対象者の同意を得た上で使用してください
+  </div>
+
+  <!-- 設定 -->
+  <div class="controls">
+    <button id="btnStartMic">🎤 マイク開始</button>
+    <button id="btnStartDesktop">🖥 画面音声開始</button>
+    <button id="btnStop">⏹ 停止</button>
+
+    <select id="modelSelect">
+      <option value="tiny">tiny（軽量）</option>
+      <option value="base">base（高精度）</option>
+    </select>
+  </div>
+
+  <!-- 状態表示 -->
+  <div class="status" id="status">
+    状態: 停止中
+  </div>
+
+  <!-- 証明書導線（社内用） -->
+  <div class="status">
+    社内利用の場合：
+    <a href="./cert/intra.cer" download>証明書をダウンロード</a>
+  </div>
+
+  <!-- 文字起こし -->
+  <div class="transcript" id="transcript"></div>
+
+</main>
+
+<script type="module">
+
+// ==============================
+// DOM
+// ==============================
+const statusEl = document.getElementById("status");
+const transcriptEl = document.getElementById("transcript");
+const modelSelect = document.getElementById("modelSelect");
+
+// ==============================
+// 状態管理
+// ==============================
+let isRunning = false;
+
+// ==============================
+// モデルチェック
+// ==============================
+async function checkModel() {
+  const model = modelSelect.value;
+  const path = `/assets/models/ggml-${model}.bin`;
+
+  try {
+    const res = await fetch(path, { method: "HEAD" });
+
+    if (!res.ok) throw new Error("not found");
+
+    return true;
+  } catch (e) {
+    if (model === "base") {
+      alert(
+        "baseモデルが見つかりません。\n" +
+        "システム管理者に連絡し、モデルファイルをサーバーに配置してください。"
+      );
+    }
+    return false;
+  }
+}
+
+// ==============================
+// UI操作
+// ==============================
+document.getElementById("btnStartMic").onclick = async () => {
+  if (isRunning) return;
+
+  const ok = await checkModel();
+  if (!ok) return;
+
+  statusEl.textContent = "状態: マイク録音中...";
+  isRunning = true;
+
+  // 仮表示
+  appendText("[Mic] 録音開始...");
+};
+
+document.getElementById("btnStartDesktop").onclick = async () => {
+  if (isRunning) return;
+
+  const ok = await checkModel();
+  if (!ok) return;
+
+  statusEl.textContent = "状態: デスクトップ音声取得中...";
+  isRunning = true;
+
+  appendText("[Desktop] 録音開始...");
+};
+
+document.getElementById("btnStop").onclick = () => {
+  if (!isRunning) return;
+
+  isRunning = false;
+  statusEl.textContent = "状態: 停止";
+
+  appendText("録音停止");
+};
+
+// ==============================
+// 表示
+// ==============================
+function appendText(text) {
+  const div = document.createElement("div");
+  div.className = "row";
+  div.textContent = `[${new Date().toLocaleTimeString()}] ${text}`;
+  transcriptEl.appendChild(div);
+
+  transcriptEl.scrollTop = transcriptEl.scrollHeight;
+}
+
+</script>
+
+</body>
+</html>
