@@ -1,6 +1,6 @@
 // src/workers/baseWorker.ts
 
-import type { AudioChunk } from "../types";
+import { initWhisper } from "../pipeline/whisper";
 import { processPipeline } from "../pipeline/pipeline";
 
 self.onmessage = async (e: MessageEvent) => {
@@ -10,11 +10,12 @@ self.onmessage = async (e: MessageEvent) => {
     switch (msg.type) {
 
       case "INIT":
+        await initWhisper(msg.model); // ★追加
         (self as any).postMessage({ type: "READY" });
         break;
 
       case "PROCESS_CHUNK":
-        const result = await processPipeline(msg.payload as AudioChunk);
+        const result = await processPipeline(msg.payload);
 
         if (result) {
           (self as any).postMessage({
@@ -24,14 +25,12 @@ self.onmessage = async (e: MessageEvent) => {
         }
         break;
 
-      case "STOP":
-        break;
     }
 
   } catch (err: any) {
     (self as any).postMessage({
       type: "ERROR",
-      payload: err.message || "Worker error"
+      payload: err.message
     });
   }
 };
