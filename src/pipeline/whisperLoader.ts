@@ -1,14 +1,15 @@
 // src/pipeline/whisperLoader.ts
 
-let whisper: any = null;
+let Module: any = null;
 
 export async function loadWhisper() {
-  if (whisper) return whisper;
+  if (Module) return Module;
 
-  // WASMロード
-  whisper = await (window as any).createWhisper({
-    wasmPath: "/assets/wasm/whisper.wasm"
+  Module = await (window as any).Module({
+    locateFile: (file: string) => {
+      return `/assets/wasm/${file}`;
+    }
   });
 
-  return whisper;
+  return Module;
 }
