@@ -7,7 +7,8 @@ export class WorkerClient {
 
   constructor(
     workerPath: string,
-    private onTranscript: (seg: TranscriptSegment) => void
+    private onTranscript: (seg: TranscriptSegment) => void,
+    private model: "tiny" | "base"
   ) {
     this.worker = new Worker(workerPath, { type: "module" });
 
@@ -29,7 +30,10 @@ export class WorkerClient {
       }
     };
 
-    this.worker.postMessage({ type: "INIT" });
+    this.worker.postMessage({
+      type: "INIT",
+      model: this.model   // ★追加
+    });
   }
 
   process(chunk: AudioChunk) {
