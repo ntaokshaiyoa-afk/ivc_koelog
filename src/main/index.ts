@@ -1,6 +1,9 @@
 // src/main/index.ts
 
 import { App } from "./app";
+import { initToast } from "./ui/toast";
+
+initToast();
 
 const transcriptEl = document.getElementById("transcript")!;
 const statusEl = document.getElementById("status")!;
