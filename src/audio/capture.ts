@@ -1,4 +1,5 @@
 // src/audio/capture.ts
+import { logUI } from "../utils/logger";
 
 export interface CaptureOptions {
   timeslice?: number; // ms
@@ -56,9 +57,9 @@ export class AudioCapture {
     this.recorder.ondataavailable = (e) => {
       const size = e.data.size;
 
-      import("../utils/logger").then(({ logUI }) => {
+      
         logUI("🎤 録音chunk: " + size);
-      });
+      
 
       if (size > 0) {
         this.onChunk(e.data);
