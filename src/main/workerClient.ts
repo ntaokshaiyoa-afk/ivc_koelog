@@ -10,7 +10,7 @@ export class WorkerClient {
     private onTranscript: (data: TranscriptSegment) => void,
     private modelBuffer?: ArrayBuffer
   ) {
-    this.worker = new Worker(workerPath, { type: "module" });
+    this.worker = new WorkerClass();
 
     // =========================
     // 受信
