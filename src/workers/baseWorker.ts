@@ -21,6 +21,7 @@ self.onmessage = async (e: MessageEvent) => {
       case "INIT":
         model = msg.model; // ★受け取る
         log("INIT完了");
+        log("model size: " + (model?.byteLength ?? 0));
         postMessage({ type: "READY" });
         break;
 
