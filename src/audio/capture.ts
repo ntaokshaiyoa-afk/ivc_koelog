@@ -29,9 +29,11 @@ export class AudioCapture {
   private start(stream: MediaStream, options: CaptureOptions) {
     this.stream = stream;
 
-    this.recorder = new MediaRecorder(stream, {
-      mimeType: "audio/webm"
-    });
+    const options = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
+      ? { mimeType: "audio/webm;codecs=opus" }
+      : {};
+    
+    this.recorder = new MediaRecorder(stream, options);
 
     this.recorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
