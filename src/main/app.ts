@@ -14,7 +14,7 @@ export class App {
 
   constructor(
     private onText: (text: string) => void
-  ) {}
+  ) };
 
   const model = (document.getElementById("modelSelect") as HTMLSelectElement).value as "tiny" | "base";
   
