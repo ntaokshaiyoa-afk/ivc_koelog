@@ -2,14 +2,15 @@
 import { logUI } from "../utils/logger";
 
 export interface CaptureOptions {
-  timeslice?: number; // ms
+  bufferSize?: number;
 }
 
 export class AudioCapture {
   private stream: MediaStream | null = null;
-  private recorder: MediaRecorder | null = null;
+  private audioContext: AudioContext | null = null;
+  private processor: ScriptProcessorNode | null = null;
 
-  constructor(private onChunk: (blob: Blob) => void) {}
+  constructor(private onChunk: (pcm: Float32Array) => void) {}
 
   // 🎤 マイク
   async startMic(options: CaptureOptions = {}) {
@@ -20,60 +21,53 @@ export class AudioCapture {
   // 🖥 デスクトップ
   async startDesktop(options: CaptureOptions = {}) {
     const stream = await navigator.mediaDevices.getDisplayMedia({
-      audio: {
-        echoCancellation: false,
-        noiseSuppression: false,
-        sampleRate: 48000
-      },
+      audio: true,
       video: true
     });
-    
-    // ★ audioトラックがないケース対策
-    const audioTracks = stream.getAudioTracks();
-  
-    if (audioTracks.length === 0) {
-      console.warn("デスクトップ音声なし → スキップ");
-      return; // ★落とさない
+
+    if (stream.getAudioTracks().length === 0) {
+      logUI("❌ デスクトップ音声なし");
+      return;
     }
-    
+
     this.start(stream, options);
   }
 
-  // 共通処理
   private start(stream: MediaStream, options: CaptureOptions) {
     this.stream = stream;
-    const mimeTypes = [
-      "audio/webm;codecs=opus",
-      "audio/webm",
-      "audio/ogg"
-    ];
-    
-    const supported = mimeTypes.find(t => MediaRecorder.isTypeSupported(t));
-    
-    const recorderOptions = supported ? { mimeType: supported } : {};
-  
-    this.recorder = new MediaRecorder(stream, recorderOptions);
-  
-    this.recorder.ondataavailable = (e) => {
-      const size = e.data.size;
 
-      
-        logUI("🎤 録音chunk: " + size);
-      
+    const audioContext = new AudioContext({ sampleRate: 16000 });
+    this.audioContext = audioContext;
 
-      if (size > 0) {
-        this.onChunk(e.data);
-      }
+    const source = audioContext.createMediaStreamSource(stream);
+
+    const bufferSize = options.bufferSize ?? 4096;
+    const processor = audioContext.createScriptProcessor(bufferSize, 1, 1);
+    this.processor = processor;
+
+    source.connect(processor);
+    processor.connect(audioContext.destination);
+
+    processor.onaudioprocess = (e) => {
+      const input = e.inputBuffer.getChannelData(0);
+
+      // コピー（重要）
+      const pcm = new Float32Array(input);
+
+      logUI("🎤 PCM chunk: " + pcm.length);
+
+      this.onChunk(pcm);
     };
-  
-    // 1秒ごとchunk
-    this.recorder.start(options.timeslice ?? 1000);
   }
 
   stop() {
-    this.recorder?.stop();
-    this.stream?.getTracks().forEach(t => t.stop());
-    this.recorder = null;
+    this.processor?.disconnect();
+    this.audioContext?.close();
+
+    this.stream?.getTracks().forEach((t) => t.stop());
+
+    this.processor = null;
+    this.audioContext = null;
     this.stream = null;
   }
 }
