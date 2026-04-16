@@ -16,43 +16,39 @@ export class WorkerClient {
     // =========================
     // 受信
     // =========================
-    this.worker.onmessage = (e) => {
-
+this.worker.onmessage = (e) => {
   const msg = e.data;
 
   switch (msg.type) {
-
     case "READY":
-
-      logUI("✅ Worker ready");
-
+      this.onTranscript({
+        speaker: "SYS",
+        text: "Worker ready",
+        timestamp: Date.now()
+      });
       break;
 
     case "TRANSCRIPT":
-
       this.onTranscript(msg.payload);
+      break;
 
+    case "LOG":
+      this.onTranscript({
+        speaker: "LOG",
+        text: msg.payload,
+        timestamp: Date.now()
+      });
       break;
 
     case "ERROR":
-
-      logUI("❌ Worker error: " + msg.payload, true);
-
+      this.onTranscript({
+        speaker: "ERR",
+        text: msg.payload,
+        timestamp: Date.now()
+      });
       break;
-
-    case "LOG": // ★追加
-
-      logUI("[Worker] " + msg.payload);
-
-      break;
-
-    default:
-
-      logUI("ℹ️ Unknown message: " + JSON.stringify(msg));
-
   }
-
-};
+  
 
     // =========================
     // 初期化
