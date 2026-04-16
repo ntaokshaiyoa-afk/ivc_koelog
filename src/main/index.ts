@@ -32,3 +32,10 @@ document.getElementById("btnStop")!.onclick = () => {
   statusEl.textContent = "状態: 停止";
   app.stop();
 };
+
+const buildInfoEl = document.getElementById("buildInfo");
+
+if (buildInfoEl) {
+  buildInfoEl.textContent = `ビルド: ${__BUILD_TIME__} (${__COMMIT_HASH__})`;
+}
+
