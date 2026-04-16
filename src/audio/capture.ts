@@ -31,7 +31,8 @@ export class AudioCapture {
     const audioTracks = stream.getAudioTracks();
   
     if (audioTracks.length === 0) {
-      throw new Error("デスクトップ音声が取得できません");
+      console.warn("デスクトップ音声なし → スキップ");
+      return; // ★落とさない
     }
     
     this.start(stream, options);
