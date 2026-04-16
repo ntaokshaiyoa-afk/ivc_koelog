@@ -2,6 +2,7 @@
 
 import { initWhisper, whisperProcess } from "../pipeline/whisper";
 import { processPipeline } from "../pipeline/pipeline";
+import "/assets/wasm/whisper.js"; // ★絶対必要
 
 let initialized = false;
 
