@@ -26,6 +26,14 @@ export class AudioCapture {
       },
       video: true
     });
+    
+    // ★ audioトラックがないケース対策
+    const audioTracks = stream.getAudioTracks();
+  
+    if (audioTracks.length === 0) {
+      throw new Error("デスクトップ音声が取得できません");
+    }
+    
     this.start(stream, options);
   }
 
