@@ -116,7 +116,7 @@ let isRunning = false;
 // ==============================
 async function checkModel() {
   const model = modelSelect.value;
-  const path = `/assets/models/ggml-${model}.bin`;
+  const path = `./assets/models/ggml-${model}.bin`;
 
   try {
     const res = await fetch(path, { method: "HEAD" });
