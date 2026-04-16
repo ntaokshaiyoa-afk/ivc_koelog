@@ -1,11 +1,12 @@
 // src/workers/baseWorker.ts
 
-import { initWhisper } from "../pipeline/whisper";
+import { initWhisper, transcribe } from "../pipeline/whisper";
 import { processPipeline } from "../pipeline/pipeline";
 
 // src/workers/baseWorker.ts
 
 let model: ArrayBuffer | null = null;
+let ready = false;
 function log(msg: string) {
   (self as any).postMessage({
     type: "LOG",
@@ -20,6 +21,8 @@ self.onmessage = async (e: MessageEvent) => {
     switch (msg.type) {
       case "INIT":
         model = msg.model; // ★受け取る
+        await initWhisper(model); // ★ここ重要
+        ready = true;
         log("INIT完了");
         log("model size: " + (model?.byteLength ?? 0));
         postMessage({ type: "READY" });
@@ -27,6 +30,7 @@ self.onmessage = async (e: MessageEvent) => {
 
       case "PROCESS":
         log("PROCESS受信");
+        if (!ready) return;
         
         if (!model) {
           throw new Error("model not initialized");
@@ -36,15 +40,18 @@ self.onmessage = async (e: MessageEvent) => {
         
         log("音声処理中...");
 
-        // ★ 仮の処理（ここにWhisper入れる）
-        postMessage({
-          type: "TRANSCRIPT",
-          payload: {
-            text: "音声認識中...",
-            speaker: chunk.source,
-            timestamp: Date.now()
-          }
-        });
+        const result = await transcribe(chunk.data); // ★ここ
+
+        if (result?.text) {
+          postMessage({
+            type: "TRANSCRIPT",
+            payload: {
+              text: result.text,
+              speaker: chunk.source,
+              timestamp: Date.now()
+            }
+          });
+        }
         break;
 
       case "STOP":
