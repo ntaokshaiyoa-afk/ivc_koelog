@@ -69,6 +69,7 @@ export class WorkerClient {
   // 音声送信
   // =========================
   process(chunk: AudioChunk) {
+    logUI("📤 chunk送信");
     this.worker.postMessage({
       type: "PROCESS",
       payload: chunk
