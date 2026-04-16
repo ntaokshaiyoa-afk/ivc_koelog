@@ -5,6 +5,8 @@ import { blobToFloat32Array } from "../audio/processor";
 import { WorkerClient } from "./workerClient";
 import { loadModel } from "../pipeline/modelLoader";
 import type { AudioChunk, TranscriptSegment } from "../types";
+import MicWorker from "../workers/micWorker?worker";
+import DesktopWorker from "../workers/desktopWorker?worker";
 
 export class App {
   private micCapture?: AudioCapture;
@@ -27,8 +29,8 @@ export class App {
     const modelBuffer = await loadModel(model);
   
     this.micWorker = new WorkerClient(
-      new URL("../workers/micWorker.ts?worker", import.meta.url), // ★ここ重要
-      (seg: TranscriptSegment) => {
+      MicWorker,
+      (seg) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
       },
       modelBuffer
@@ -59,8 +61,8 @@ export class App {
     const modelBuffer = await loadModel(model);
 
     this.desktopWorker = new WorkerClient(
-      new URL("../workers/desktopWorker.ts?worker", import.meta.url), // ★追加
-      (seg: TranscriptSegment) => {
+      DesktopWorker,
+      (seg) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
       },
       modelBuffer
