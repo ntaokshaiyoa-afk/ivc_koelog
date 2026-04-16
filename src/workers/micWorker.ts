@@ -2,21 +2,30 @@
 
 let model: ArrayBuffer | null = null;
 
-self.onmessage = async (e: MessageEvent) => {
-  const { type, chunk } = e.data;
+self.onmessage = async (e) => {
+  const msg = e.data;
 
-  if (type === "init") {
-    model = e.data.model;
+  switch (msg.type) {
+    case "INIT":
+      // モデル初期化
+      self.postMessage({ type: "READY" });
+      break;
 
-    console.log("model loaded");
-    return;
-  }
+    case "PROCESS":
+      const chunk = msg.payload;
 
-  if (type === "audio") {
-    // ★ 仮実装（テスト用）
-    self.postMessage({
-      speaker: "A",
-      text: `音声受信 ${chunk.data.length}`
-    });
+      // ★ここにWhisper処理入れる
+      self.postMessage({
+        type: "TRANSCRIPT",
+        payload: {
+          speaker: "A",
+          text: "テスト文字起こし"
+        }
+      });
+      break;
+
+    case "STOP":
+      close();
+      break;
   }
 };
