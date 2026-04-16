@@ -36,15 +36,13 @@ export class App {
       modelBuffer
     );
   
-    this.micCapture = new AudioCapture(async (blob) => {
-      const pcm = await blobToFloat32Array(blob);
-  
+    this.micCapture = new AudioCapture((pcm) => {
       const chunk: AudioChunk = {
         data: pcm,
         timestamp: Date.now(),
         source: "mic"
       };
-  
+    
       this.micWorker?.process(chunk);
     });
   
