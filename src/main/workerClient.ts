@@ -7,17 +7,20 @@ export class WorkerClient {
 
   constructor(
     workerPath: URL,
-    private onMessage: (data: any) => void,
+    private onTranscript: (data: TranscriptSegment) => void,
     private modelBuffer?: ArrayBuffer
   ) {
     this.worker = new Worker(workerPath, { type: "module" });
 
+    // =========================
+    // 受信
+    // =========================
     this.worker.onmessage = (e) => {
-      this.onMessage(e.data);
+      const msg = e.data;
 
       switch (msg.type) {
         case "READY":
-          console.log("Worker ready");
+          console.log("✅ Worker ready");
           break;
 
         case "TRANSCRIPT":
@@ -25,33 +28,38 @@ export class WorkerClient {
           break;
 
         case "ERROR":
-          console.error(msg.payload);
+          console.error("❌ Worker error:", msg.payload);
           break;
+
+        default:
+          console.log("ℹ️ Unknown message:", msg);
       }
     };
 
-    this.worker.postMessage({
-      type: "INIT",
-      model: this.model   // ★追加
-    });
-  }
-
-  async init() {
+    // =========================
+    // 初期化
+    // =========================
     if (this.modelBuffer) {
       this.worker.postMessage({
-        type: "init",
+        type: "INIT",
         model: this.modelBuffer
       });
     }
   }
 
-  process(chunk: any) {
+  // =========================
+  // 音声送信
+  // =========================
+  process(chunk: AudioChunk) {
     this.worker.postMessage({
-      type: "audio",
-      chunk
+      type: "PROCESS",
+      payload: chunk
     });
   }
 
+  // =========================
+  // 停止
+  // =========================
   stop() {
     this.worker.postMessage({ type: "STOP" });
     this.worker.terminate();
