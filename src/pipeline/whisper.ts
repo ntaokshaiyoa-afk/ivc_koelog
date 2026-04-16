@@ -14,8 +14,17 @@ let audioBuffer: Float32Array[] = [];
 export async function initWhisper(model: "tiny" | "base") {
 
   if (initialized) return;
-
+  
   module = await loadWhisper();
+  
+  if (!module) {
+    throw new Error("module undefined");
+  }
+  
+  if (!module._malloc) {
+    console.error(module);
+    throw new Error("_malloc missing → wasmロード失敗");
+  }
 
   const modelBuffer = await loadModel(model);
 
