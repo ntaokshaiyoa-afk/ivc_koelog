@@ -16,39 +16,39 @@ export class WorkerClient {
     // =========================
     // 受信
     // =========================
-this.worker.onmessage = (e) => {
-  const msg = e.data;
+    this.worker.onmessage = (e) => {
+      const msg = e.data;
 
-  switch (msg.type) {
-    case "READY":
-      this.onTranscript({
-        speaker: "SYS",
-        text: "Worker ready",
-        timestamp: Date.now()
-      });
-      break;
+      switch (msg.type) {
+        case "READY":
+          this.onTranscript({
+            speaker: "SYS",
+            text: "Worker ready",
+            timestamp: Date.now()
+          });
+          break;
 
-    case "TRANSCRIPT":
-      this.onTranscript(msg.payload);
-      break;
+        case "TRANSCRIPT":
+          this.onTranscript(msg.payload);
+          break;
 
-    case "LOG":
-      this.onTranscript({
-        speaker: "LOG",
-        text: msg.payload,
-        timestamp: Date.now()
-      });
-      break;
+        case "LOG":
+          this.onTranscript({
+            speaker: "LOG",
+            text: msg.payload,
+            timestamp: Date.now()
+          });
+          break;
 
-    case "ERROR":
-      this.onTranscript({
-        speaker: "ERR",
-        text: msg.payload,
-        timestamp: Date.now()
-      });
-      break;
-  }
-  
+        case "ERROR":
+          this.onTranscript({
+            speaker: "ERR",
+            text: msg.payload,
+            timestamp: Date.now()
+          });
+          break;
+      }
+    }
 
     // =========================
     // 初期化
