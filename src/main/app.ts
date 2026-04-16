@@ -27,12 +27,11 @@ export class App {
     // ★ モデルロード
     const modelBuffer = await loadModel(model);
 
-    this.micWorker = new WorkerClient(
-      new URL("../workers/micWorker.ts", import.meta.url),
-      (seg: TranscriptSegment) => {
-        this.onText(`[${seg.speaker}] ${seg.text}`);
-      },
-      modelBuffer
+    this.worker = new Worker(
+      new URL("../workers/micWorker.ts?worker", import.meta.url),
+      {
+        type: "module"
+      }
     );
 
     this.micCapture = new AudioCapture(async (blob) => {
