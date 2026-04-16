@@ -54,7 +54,13 @@ export class AudioCapture {
     this.recorder = new MediaRecorder(stream, recorderOptions);
   
     this.recorder.ondataavailable = (e) => {
-      if (e.data.size > 0) {
+      const size = e.data.size;
+
+      import("../utils/logger").then(({ logUI }) => {
+        logUI("🎤 録音chunk: " + size);
+      });
+
+      if (size > 0) {
         this.onChunk(e.data);
       }
     };
