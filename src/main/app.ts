@@ -3,6 +3,7 @@
 import { AudioCapture } from "../audio/capture";
 import { blobToFloat32Array } from "../audio/processor";
 import { WorkerClient } from "./workerClient";
+import { loadModel } from "../pipeline/modelLoader";
 import type { AudioChunk, TranscriptSegment } from "../types";
 
 export class App {
@@ -14,22 +15,24 @@ export class App {
 
   constructor(
     private onText: (text: string) => void
-  ) };
+  ) {}
 
-  const model = (document.getElementById("modelSelect") as HTMLSelectElement).value as "tiny" | "base";
-  
-  this.micWorker = new WorkerClient(
-    new URL("../workers/micWorker.ts", import.meta.url),
-    (seg) => this.onText(`[${seg.speaker}] ${seg.text}`),
-    model
-  );
-  
+  // =========================
+  // マイク
+  // =========================
   async startMic() {
+    const model = (document.getElementById("modelSelect") as HTMLSelectElement)
+      .value as "tiny" | "base";
+
+    // ★ モデルロード
+    const modelBuffer = await loadModel(model);
+
     this.micWorker = new WorkerClient(
       new URL("../workers/micWorker.ts", import.meta.url),
       (seg: TranscriptSegment) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
-      }
+      },
+      modelBuffer
     );
 
     this.micCapture = new AudioCapture(async (blob) => {
@@ -47,12 +50,21 @@ export class App {
     await this.micCapture.startMic();
   }
 
+  // =========================
+  // デスクトップ音声
+  // =========================
   async startDesktop() {
+    const model = (document.getElementById("modelSelect") as HTMLSelectElement)
+      .value as "tiny" | "base";
+
+    const modelBuffer = await loadModel(model);
+
     this.desktopWorker = new WorkerClient(
       new URL("../workers/desktopWorker.ts", import.meta.url),
       (seg: TranscriptSegment) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
-      }
+      },
+      modelBuffer
     );
 
     this.desktopCapture = new AudioCapture(async (blob) => {
@@ -70,6 +82,9 @@ export class App {
     await this.desktopCapture.startDesktop();
   }
 
+  // =========================
+  // 停止
+  // =========================
   stop() {
     this.micCapture?.stop();
     this.desktopCapture?.stop();
