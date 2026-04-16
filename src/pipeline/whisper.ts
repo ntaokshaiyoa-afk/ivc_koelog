@@ -12,19 +12,35 @@ let audioBuffer: Float32Array[] = [];
 
 
 export async function initWhisper(model: "tiny" | "base") {
+
   if (initialized) return;
 
   module = await loadWhisper();
 
-  // ★ stream初期化
+  const modelBuffer = await loadModel(model);
+
+  // WASMにモデルを渡す（環境に応じて調整）
+
+  const ptr = module._malloc(modelBuffer.byteLength);
+
+  new Uint8Array(module.HEAPU8.buffer, ptr, modelBuffer.byteLength)
+
+    .set(new Uint8Array(modelBuffer));
+
   module.ccall(
-    "whisper_init_from_file",
+
+    "whisper_init_from_buffer",
+
     "number",
-    ["string"],
-    ["/assets/models/ggml-tiny.bin"]
+
+    ["number", "number"],
+
+    [ptr, modelBuffer.byteLength]
+
   );
 
   initialized = true;
+
 }
 
 export async function whisperProcess(chunk: AudioChunk) {
