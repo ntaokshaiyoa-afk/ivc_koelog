@@ -23,29 +23,29 @@ export class App {
   async startMic() {
     const model = (document.getElementById("modelSelect") as HTMLSelectElement)
       .value as "tiny" | "base";
-
-    // ★ モデルロード
+  
     const modelBuffer = await loadModel(model);
-
-    this.worker = new Worker(
-      new URL("../workers/micWorker.ts?worker", import.meta.url),
-      {
-        type: "module"
-      }
+  
+    this.micWorker = new WorkerClient(
+      new URL("../workers/micWorker.ts?worker", import.meta.url), // ★ここ重要
+      (seg: TranscriptSegment) => {
+        this.onText(`[${seg.speaker}] ${seg.text}`);
+      },
+      modelBuffer
     );
-
+  
     this.micCapture = new AudioCapture(async (blob) => {
       const pcm = await blobToFloat32Array(blob);
-
+  
       const chunk: AudioChunk = {
         data: pcm,
         timestamp: Date.now(),
         source: "mic"
       };
-
+  
       this.micWorker?.process(chunk);
     });
-
+  
     await this.micCapture.startMic();
   }
 
@@ -59,7 +59,7 @@ export class App {
     const modelBuffer = await loadModel(model);
 
     this.desktopWorker = new WorkerClient(
-      new URL("../workers/desktopWorker.ts", import.meta.url),
+      new URL("../workers/desktopWorker.ts?worker", import.meta.url), // ★追加
       (seg: TranscriptSegment) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
       },
