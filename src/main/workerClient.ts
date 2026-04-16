@@ -6,14 +6,14 @@ export class WorkerClient {
   private worker: Worker;
 
   constructor(
-    workerPath: string,
-    private onTranscript: (seg: TranscriptSegment) => void,
-    private model: "tiny" | "base"
+    workerPath: URL,
+    private onMessage: (data: any) => void,
+    private modelBuffer?: ArrayBuffer
   ) {
     this.worker = new Worker(workerPath, { type: "module" });
 
     this.worker.onmessage = (e) => {
-      const msg = e.data;
+      this.onMessage(e.data);
 
       switch (msg.type) {
         case "READY":
@@ -36,10 +36,19 @@ export class WorkerClient {
     });
   }
 
-  process(chunk: AudioChunk) {
+  async init() {
+    if (this.modelBuffer) {
+      this.worker.postMessage({
+        type: "init",
+        model: this.modelBuffer
+      });
+    }
+  }
+
+  process(chunk: any) {
     this.worker.postMessage({
-      type: "PROCESS_CHUNK",
-      payload: chunk
+      type: "audio",
+      chunk
     });
   }
 
