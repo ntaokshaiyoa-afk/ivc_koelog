@@ -1,6 +1,7 @@
 // src/main/workerClient.ts
 
 import type { AudioChunk, TranscriptSegment } from "../types";
+import { logUI } from "../utils/logger";
 
 export class WorkerClient {
   private worker: Worker;
@@ -16,25 +17,42 @@ export class WorkerClient {
     // 受信
     // =========================
     this.worker.onmessage = (e) => {
-      const msg = e.data;
 
-      switch (msg.type) {
-        case "READY":
-          console.log("✅ Worker ready");
-          break;
+  const msg = e.data;
 
-        case "TRANSCRIPT":
-          this.onTranscript(msg.payload);
-          break;
+  switch (msg.type) {
 
-        case "ERROR":
-          console.error("❌ Worker error:", msg.payload);
-          break;
+    case "READY":
 
-        default:
-          console.log("ℹ️ Unknown message:", msg);
-      }
-    };
+      logUI("✅ Worker ready");
+
+      break;
+
+    case "TRANSCRIPT":
+
+      this.onTranscript(msg.payload);
+
+      break;
+
+    case "ERROR":
+
+      logUI("❌ Worker error: " + msg.payload, true);
+
+      break;
+
+    case "LOG": // ★追加
+
+      logUI("[Worker] " + msg.payload);
+
+      break;
+
+    default:
+
+      logUI("ℹ️ Unknown message: " + JSON.stringify(msg));
+
+  }
+
+};
 
     // =========================
     // 初期化
