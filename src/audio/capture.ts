@@ -19,7 +19,11 @@ export class AudioCapture {
   // 🖥 デスクトップ
   async startDesktop(options: CaptureOptions = {}) {
     const stream = await navigator.mediaDevices.getDisplayMedia({
-      audio: true,
+      audio: {
+        echoCancellation: false,
+        noiseSuppression: false,
+        sampleRate: 48000
+      },
       video: true
     });
     this.start(stream, options);
@@ -28,19 +32,24 @@ export class AudioCapture {
   // 共通処理
   private start(stream: MediaStream, options: CaptureOptions) {
     this.stream = stream;
-
-    const options = MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
-      ? { mimeType: "audio/webm;codecs=opus" }
-      : {};
+    const mimeTypes = [
+      "audio/webm;codecs=opus",
+      "audio/webm",
+      "audio/ogg"
+    ];
     
-    this.recorder = new MediaRecorder(stream, options);
-
+    const supported = mimeTypes.find(t => MediaRecorder.isTypeSupported(t));
+    
+    const recorderOptions = supported ? { mimeType: supported } : {};
+  
+    this.recorder = new MediaRecorder(stream, recorderOptions);
+  
     this.recorder.ondataavailable = (e) => {
       if (e.data.size > 0) {
         this.onChunk(e.data);
       }
     };
-
+  
     // 1秒ごとchunk
     this.recorder.start(options.timeslice ?? 1000);
   }
