@@ -7,11 +7,11 @@ export class WorkerClient {
   private worker: Worker;
 
   constructor(
-    workerPath: URL,
+    worker: Worker,
     private onTranscript: (data: TranscriptSegment) => void,
     private modelBuffer?: ArrayBuffer
   ) {
-    this.worker = new WorkerClass();
+    this.worker = worker;
 
     // =========================
     // 受信
