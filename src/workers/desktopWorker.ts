@@ -1,3 +1,2 @@
-// src/workers/desktopWorker.ts
-
 import "./baseWorker";
+export default {} as any;
