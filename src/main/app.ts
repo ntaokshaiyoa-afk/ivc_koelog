@@ -30,7 +30,10 @@ export class App {
     const modelBuffer = await loadModel(model);
   
     this.micWorker = new WorkerClient(
-      new MicWorker(),
+      new Worker(
+        new URL("../workers/micWorker.ts", import.meta.url),
+        { type: "classic" } // ★これが最重要
+      ),
       (seg) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
       },
@@ -60,7 +63,10 @@ export class App {
     const modelBuffer = await loadModel(model);
 
     this.desktopWorker = new WorkerClient(
-      new DesktopWorker(),
+      new Worker(
+        new URL("../workers/desktopWorker.ts", import.meta.url),
+        { type: "classic" }
+      ),
       (seg) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
       },
