@@ -1,10 +1,11 @@
 // src/workers/baseWorker.ts
 
-import "/assets/wasm/main.js"; // ★これが本体（超重要）
+import "/assets/wasm/main.js"; // whisper.cpp本体
 
 let instance: any = null;
 let audioBuffer: Float32Array[] = [];
 let initialized = false;
+let modelLoaded = false;
 
 function log(msg: string) {
   (self as any).postMessage({
@@ -13,8 +14,40 @@ function log(msg: string) {
   });
 }
 
-function storeFS(fname: string, buf: ArrayBuffer) {
-  (self as any).Module.FS_createDataFile("/", fname, new Uint8Array(buf), true, true);
+// =========================
+// loadRemoteラッパ
+// =========================
+function loadModelRemote(): Promise<void> {
+  return new Promise((resolve, reject) => {
+
+    const Module = (self as any).Module;
+
+    function cbProgress(p: number) {
+      log("モデルDL: " + Math.round(p * 100) + "%");
+    }
+
+    function cbReady(dst: string, data: ArrayBuffer) {
+      log("モデルDL完了");
+
+      Module.FS_createDataFile("/", dst, new Uint8Array(data), true, true);
+
+      resolve();
+    }
+
+    function cbCancel() {
+      reject("model load canceled");
+    }
+
+    (self as any).loadRemote(
+      "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin",
+      "whisper.bin",
+      31,
+      cbProgress,
+      cbReady,
+      cbCancel,
+      log
+    );
+  });
 }
 
 self.onmessage = async (e: MessageEvent) => {
@@ -29,18 +62,21 @@ self.onmessage = async (e: MessageEvent) => {
       case "INIT":
         log("WASM初期化待ち...");
 
-        // WASM ready待ち
+        // Module待ち
         while (!(self as any).Module || !(self as any).Module.init) {
           await new Promise(r => setTimeout(r, 100));
         }
 
         log("WASM ready");
 
-        // モデル受け取り
-        const modelBuffer = msg.model;
+        // ★ モデルDL（ここが変更点）
+        if (!modelLoaded) {
+          log("モデルロード開始...");
+          await loadModelRemote();
+          modelLoaded = true;
+        }
 
-        log("モデルロード中...");
-        storeFS("whisper.bin", modelBuffer);
+        log("モデル初期化中...");
 
         instance = (self as any).Module.init("whisper.bin");
 
@@ -62,7 +98,6 @@ self.onmessage = async (e: MessageEvent) => {
 
         const total = audioBuffer.reduce((s, b) => s + b.length, 0);
 
-        // 3秒貯める
         if (total < 16000 * 3) return;
 
         const merged = new Float32Array(total);
