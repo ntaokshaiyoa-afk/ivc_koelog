@@ -5,8 +5,8 @@ import { blobToFloat32Array } from "../audio/processor";
 import { WorkerClient } from "./workerClient";
 import { loadModel } from "../pipeline/modelLoader";
 import type { AudioChunk, TranscriptSegment } from "../types";
-import MicWorker from "../workers/micWorker.ts";
-import DesktopWorker from "../workers/desktopWorker.ts";
+import MicWorker from "../workers/micWorker.ts?worker";
+import DesktopWorker from "../workers/desktopWorker.ts?worker";
 
 export class App {
   private micCapture?: AudioCapture;
