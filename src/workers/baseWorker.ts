@@ -1,6 +1,9 @@
 // src/workers/baseWorker.ts
 
-import "/assets/wasm/main.js"; // whisper.cpp本体
+declare const self: DedicatedWorkerGlobalScope;
+
+importScripts("/assets/wasm/helpers.js");
+importScripts("/assets/wasm/main.js");
 
 let instance: any = null;
 let audioBuffer: Float32Array[] = [];
