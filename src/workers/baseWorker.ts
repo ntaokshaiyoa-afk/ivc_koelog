@@ -1,6 +1,6 @@
 // src/workers/baseWorker.ts
 
-declare const self: DedicatedWorkerGlobalScope;
+declare const self: any;
 
 importScripts("/assets/wasm/helpers.js");
 importScripts("/assets/wasm/main.js");
