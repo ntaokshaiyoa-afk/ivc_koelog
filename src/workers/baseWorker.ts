@@ -14,7 +14,7 @@ function loadScript(url: string) {
 
 const BASE = self.location.origin + "/ivc_koelog";
 
-log(main.js 読み込み開始");
+log("main.js 読み込み開始");
 //loadScript(BASE + "/assets/wasm/helpers.js");
 loadScript(BASE + "/assets/wasm/main.js");
 
