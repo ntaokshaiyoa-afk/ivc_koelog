@@ -13,6 +13,22 @@ export class WorkerClient {
   ) {
     this.worker = worker;
 
+this.worker.onerror = (e) => {
+  this.onTranscript({
+    speaker: "ERR",
+    text: `Worker error: ${e.message}`,
+    timestamp: Date.now()
+  });
+};
+
+this.worker.onmessageerror = (e) => {
+  this.onTranscript({
+    speaker: "ERR",
+    text: `Message error`,
+    timestamp: Date.now()
+  });
+};
+    
     // =========================
     // 受信
     // =========================
