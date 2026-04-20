@@ -2,8 +2,12 @@
 
 declare const self: any;
 
+log("helpers.js 読み込み開始");
 importScripts("./assets/wasm/helpers.js");
+log("helpers.js OK");
+
 importScripts("./assets/wasm/main.js");
+log("main.js OK");
 
 let instance: any = null;
 let audioBuffer: Float32Array[] = [];
