@@ -14,8 +14,8 @@ function loadScript(url: string) {
 
 const BASE = self.location.origin + "/ivc_koelog";
 
-log("helpers.js 読み込み開始");
-loadScript(BASE + "/assets/wasm/helpers.js");
+log(main.js 読み込み開始");
+//loadScript(BASE + "/assets/wasm/helpers.js");
 loadScript(BASE + "/assets/wasm/main.js");
 
 let instance: any = null;
@@ -31,41 +31,34 @@ function log(msg: string) {
 }
 
 // =========================
-// loadRemoteラッパ
+// fetchでモデル取得
 // =========================
-function loadModelRemote(): Promise<void> {
-  return new Promise((resolve, reject) => {
+async function loadModelRemote(): Promise<void> {
+  const url =
+    "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin";
 
-    const Module = (self as any).Module;
+  log("モデルDL開始...");
 
-    function cbProgress(p: number) {
-      log("モデルDL: " + Math.round(p * 100) + "%");
-    }
+  const res = await fetch(url);
 
-    function cbReady(dst: string, data: ArrayBuffer) {
-      log("モデルDL完了");
+  if (!res.ok) {
+    throw new Error("model download failed");
+  }
 
-      Module.FS_createDataFile("/", dst, new Uint8Array(data), true, true);
+  const buffer = await res.arrayBuffer();
 
-      resolve();
-    }
+  log("モデルDL完了");
 
-    function cbCancel() {
-      reject("model load canceled");
-    }
+  const Module = (self as any).Module;
 
-    (self as any).loadRemote(
-      "https://huggingface.co/ggerganov/whisper.cpp/resolve/main/ggml-tiny-q5_1.bin",
-      "whisper.bin",
-      31,
-      cbProgress,
-      cbReady,
-      cbCancel,
-      log
-    );
-  });
+  Module.FS_createDataFile(
+    "/",
+    "whisper.bin",
+    new Uint8Array(buffer),
+    true,
+    true
+  );
 }
-
 self.onmessage = async (e: MessageEvent) => {
   const msg = e.data;
 
