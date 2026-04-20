@@ -94,7 +94,7 @@ export class App {
         } catch (err: any) {
 
     this.onText(`[ERR] ${err.message}`);
-
+    }
   
   }
 
