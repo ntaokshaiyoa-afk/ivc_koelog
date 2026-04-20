@@ -2,12 +2,21 @@
 
 declare const self: any;
 
-log("helpers.js 読み込み開始");
-importScripts("./assets/wasm/helpers.js");
-log("helpers.js OK");
+function loadScript(url: string) {
+  try {
+    importScripts(url);
+    log("✔ load: " + url);
+  } catch (e) {
+    log("❌ load失敗: " + url);
+    throw e;
+  }
+}
 
-importScripts("./assets/wasm/main.js");
-log("main.js OK");
+const BASE = self.location.origin + "/ivc_koelog";
+
+log("helpers.js 読み込み開始");
+loadScript(BASE + "/assets/wasm/helpers.js");
+loadScript(BASE + "/assets/wasm/main.js");
 
 let instance: any = null;
 let audioBuffer: Float32Array[] = [];
