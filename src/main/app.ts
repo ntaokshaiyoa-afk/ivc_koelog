@@ -24,39 +24,44 @@ export class App {
   // マイク
   // =========================
   async startMic() {
+  try {
     const model = (document.getElementById("modelSelect") as HTMLSelectElement)
       .value as "tiny" | "base";
-  
+
     const modelBuffer = await loadModel(model);
-  
+
     this.micWorker = new WorkerClient(
-      new Worker(
-        new URL("../workers/micWorker.ts", import.meta.url),
-        { type: "classic" } // ★これが最重要
-      ),
+      new Worker(new URL("../workers/micWorker.ts", import.meta.url), {
+        type: "classic"
+      }),
       (seg) => {
         this.onText(`[${seg.speaker}] ${seg.text}`);
       },
       modelBuffer
     );
-  
+
     this.micCapture = new AudioCapture((pcm) => {
       const chunk: AudioChunk = {
         data: pcm,
         timestamp: Date.now(),
         source: "mic"
       };
-    
+
       this.micWorker?.process(chunk);
     });
-  
+
     await this.micCapture.startMic();
+
+  } catch (err: any) {
+    this.onText(`[ERR] ${err.message}`);
   }
+}
 
   // =========================
   // デスクトップ音声
   // =========================
   async startDesktop() {
+    try {
     const model = (document.getElementById("modelSelect") as HTMLSelectElement)
       .value as "tiny" | "base";
 
@@ -86,6 +91,11 @@ export class App {
     });
 
     await this.desktopCapture.startDesktop();
+        } catch (err: any) {
+
+    this.onText(`[ERR] ${err.message}`);
+
+  
   }
 
   // =========================
