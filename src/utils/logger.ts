@@ -5,10 +5,29 @@ export function logUI(msg: string, toast = false) {
 
   const el = document.getElementById("transcript");
   if (el) {
-    const div = document.createElement("div");
-    div.textContent = `[${new Date().toLocaleTimeString()}] ${msg}`;
-    el.appendChild(div);
-    el.scrollTop = el.scrollHeight;
+    const time = new Date().toLocaleTimeString();
+
+  const line = document.createElement("div");
+
+  line.className = "row";
+
+  // 色分け
+
+  if (msg.includes("ERR") || msg.includes("ERROR")) {
+
+    line.style.color = "red";
+
+  } else if (msg.includes("LOG")) {
+
+    line.style.color = "gray";
+
+  }
+
+  line.textContent = `[${time}] ${msg}`;
+
+  el.appendChild(line);
+
+  el.scrollTop = el.scrollHeight;
   }
 
   if (toast) {
