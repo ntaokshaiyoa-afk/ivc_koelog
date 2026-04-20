@@ -9,7 +9,11 @@ if (typeof window === 'undefined') {
 
     swUrl.pathname = '/ivc_koelog/coi-serviceworker.js';
     
-    const reg = await navigator.serviceWorker.register(swUrl);
+    const reg = await navigator.serviceWorker.register(
+      swUrl,
+      { scope: '/ivc_koelog/' }
+    );
+    
     await navigator.serviceWorker.ready;
 
     location.reload();
