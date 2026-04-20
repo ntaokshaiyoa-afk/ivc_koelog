@@ -4,6 +4,23 @@ import { App } from "./app";
 import { initToast } from "./ui/toast";
 
 initToast();
+import { logUI } from "../utils/logger";
+
+// JS例外
+
+window.addEventListener("error", (e) => {
+
+  logUI(`🔥 JS ERROR: ${e.message}`);
+
+});
+
+// Promise例外
+
+window.addEventListener("unhandledrejection", (e) => {
+
+  logUI(`🔥 PROMISE ERROR: ${e.reason}`);
+
+});
 
 const transcriptEl = document.getElementById("transcript")!;
 const statusEl = document.getElementById("status")!;
