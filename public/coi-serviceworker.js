@@ -4,16 +4,11 @@ if (typeof window === 'undefined') {
 } else {
   (async () => {
     if (window.crossOriginIsolated) return;
-
-    // ★ 修正ここ
+    
     const swUrl = new URL(location.href);
 
-    // ❌ NG
-    // swUrl.pathname = '/coi-serviceworker.js';
-
-    // ✅ OK（リポジトリ対応）
-    swUrl.pathname = location.pathname.replace(/\/[^/]*$/, '') + '/coi-serviceworker.js';
-
+    swUrl.pathname = '/ivc_koelog/coi-serviceworker.js';
+    
     const reg = await navigator.serviceWorker.register(swUrl);
     await navigator.serviceWorker.ready;
 
